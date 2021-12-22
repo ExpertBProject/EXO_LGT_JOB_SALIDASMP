@@ -1,0 +1,7 @@
+﻿<?xml version="1.0"?>
+<Connection>
+  <GUARDAR FICH="Y" DIASGUARDAR="400" RUTA="E:\Desarrollo\Usuarios\brodrigo\GIT\Lingotes\Ficheros"/>
+  <HANA Server="xper-hanades02:30015" DbUser="B1SLDUSER" DbPwd="12629iYk" databaseName="SBOLINGOTES" providerName="Sap.Data.Hana"/>
+  <DI Server="TS1@xper-hanades02.hanab1.local:30013" LicenseServer="xper-hanades02:40000" CompanyDB="LANDE2020" UserName="brodrigo" Password="Exp3rt0n3$" DbPassword="12629iYk" DbUserName="B1SLDUSER"/>
+  <!--<DI Server="TS1@xper-hanades02.hanab1.local:30013" LicenseServer="xper-hanades02:40000" CompanyDB="SBOLINGOTES" DbUserName="B1SLDUSER" DbPassword="12629iYk" UserName="brodrigo" Password="Exp3rt0n3$" />-->
+</Connection>

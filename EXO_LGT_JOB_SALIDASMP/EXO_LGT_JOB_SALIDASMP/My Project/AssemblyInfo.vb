@@ -10,7 +10,7 @@ Imports System.Runtime.InteropServices
 
 <Assembly: AssemblyTitle("EXO_LGT_JOB_SALIDASMP")>
 <Assembly: AssemblyDescription("")>
-<Assembly: AssemblyCompany("")>
+<Assembly: AssemblyCompany("EXPERT ONE")>
 <Assembly: AssemblyProduct("EXO_LGT_JOB_SALIDASMP")>
 <Assembly: AssemblyCopyright("Copyright ©  2021")>
 <Assembly: AssemblyTrademark("")>
@@ -31,5 +31,5 @@ Imports System.Runtime.InteropServices
 ' mediante el carácter '*', como se muestra a continuación:
 ' <Assembly: AssemblyVersion("1.0.*")> 
 
-<Assembly: AssemblyVersion("1.0.0.0")>
-<Assembly: AssemblyFileVersion("1.0.0.0")>
+<Assembly: AssemblyVersion("10.1.4.001")>
+<Assembly: AssemblyFileVersion("10.1.4.001")>
