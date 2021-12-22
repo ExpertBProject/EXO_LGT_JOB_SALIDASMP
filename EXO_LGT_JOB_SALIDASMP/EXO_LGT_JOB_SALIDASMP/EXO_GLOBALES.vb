@@ -12,6 +12,7 @@ Public Class EXO_GLOBALES
     End Enum
 
 #End Region
+
     Public Shared Function DblNumberToText(ByRef oCompany As SAPbobsCOM.Company, ByVal cValor As Double, ByVal oDestino As FuenteInformacion) As String
         Dim oRs As SAPbobsCOM.Recordset = Nothing
         Dim sSQL As String = ""

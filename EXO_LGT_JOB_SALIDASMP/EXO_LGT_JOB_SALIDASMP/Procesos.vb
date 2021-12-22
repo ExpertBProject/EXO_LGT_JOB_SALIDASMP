@@ -24,6 +24,7 @@ Public Class Procesos
 
                 If diferencia >= CDbl(sDias) Then ' Nº de días
                     File.Delete(archivo)
+                    oLog.escribeMensaje("la diferencia de días es " & diferencia.ToString & ". Se borra el fichero " & archivo, EXO_Log.EXO_Log.Tipo.advertencia)
                 End If
             Next
         Catch exCOM As System.Runtime.InteropServices.COMException
@@ -32,6 +33,8 @@ Public Class Procesos
         Catch ex As Exception
             Dim sError As String = "Limpiar Hcos - " & ex.Message
             oLog.escribeMensaje(sError, EXO_Log.EXO_Log.Tipo.error)
+        Finally
+            oLog.escribeMensaje("Fin del proceso.", EXO_Log.EXO_Log.Tipo.advertencia)
         End Try
     End Sub
     Public Shared Sub AjusteStockSalida(ByRef oLog As EXO_Log.EXO_Log)
@@ -96,11 +99,11 @@ Public Class Procesos
                                         currentRow = MyReader.ReadFields() : currentRow = MyReader.ReadFields()
                                         bPrimeraLinea = False
                                         'Creo cabecera
-                                        sFecha = Right(archivo, 8)
+                                        sFecha = Right(Left(archivo, Len(archivo) - 4), 8)
                                         oOIGE.DocDate = CDate(Right(sFecha, 2) & "/" & Mid(sFecha, 5, 2) & "/" & Left(sFecha, 4))
                                         oOIGE.TaxDate = CDate(Right(sFecha, 2) & "/" & Mid(sFecha, 5, 2) & "/" & Left(sFecha, 4))
                                         oOIGE.Comments = "Ajuste de stock salida recibido - " & archivo
-
+                                        oOIGE.UserFields.Fields.Item("U_EXO_FILEINTERFACE").Value = archivo
                                     Else
                                         currentRow = MyReader.ReadFields()
                                         oOIGE.Lines.Add()
@@ -130,12 +133,13 @@ Public Class Procesos
                                     'Datos generales del artículo
                                     bGestionLotes = GestionLotes(oCompany, sArticulo)
                                     sWhsCode = AlmacenPorDefecto(oCompany, sArticulo)
-
-                                    oRs.DoQuery("SELECT COALESCE(t1.""U_EXO_ACCTCODEEX"", '') ""U_EXO_ACCTCODEEX"", " &
+                                    sSQL = "SELECT COALESCE(t1.""U_EXO_ACCTCODEEX"", '') ""U_EXO_ACCTCODEEX"", " &
                                         "COALESCE(t1.""U_EXO_OCRCODE"", '') ""U_EXO_OCRCODE"" " &
                                         "FROM ""OITB"" t1 INNER JOIN " &
                                         """OITM"" t2 ON t1.""ItmsGrpCod"" = t2.""ItmsGrpCod"" " &
-                                        "WHERE t2.""ItemCode"" = '" & sArticulo & "'")
+                                        "WHERE t2.""ItemCode"" = '" & sArticulo & "'"
+                                    oLog.escribeMensaje("AjusteStockSalida - SQL " & sSQL, EXO_Log.EXO_Log.Tipo.advertencia)
+                                    oRs.DoQuery(sSQL)
 
                                     If oRs.RecordCount > 0 Then
                                         sAcctCodeEx = oRs.Fields.Item("U_EXO_ACCTCODEEX").Value.ToString
@@ -173,6 +177,8 @@ Public Class Procesos
                         If Reader IsNot Nothing Then
                             Reader.Close() : Reader.Dispose() : Reader = Nothing
                         End If
+
+
                         If oOIGE.Add() <> 0 Then
                             oLog.escribeMensaje("AjusteStockSalida - " & oCompany.GetLastErrorCode.ToString & " / " & oCompany.GetLastErrorDescription.Replace("'", ""), EXO_Log.EXO_Log.Tipo.error)
                         Else
@@ -180,7 +186,7 @@ Public Class Procesos
                             If oCompany.InTransaction = True Then
                                 oCompany.EndTransaction(SAPbobsCOM.BoWfTransOpt.wf_Commit)
                             End If
-                            oRs.DoQuery("SELECT ""DocNum"" FROM ""OIGE"" WHERE ""DocEntry =" & sDocEntryOIGE)
+                            oRs.DoQuery("SELECT ""DocNum"" FROM ""OIGE"" WHERE ""DocEntry"" =" & sDocEntryOIGE)
                             If oRs.RecordCount > 0 Then
                                 sDocNumOIGE = oRs.Fields.Item("DocNum").Value.ToString
                                 oLog.escribeMensaje("AjusteStockSalida - Se ha generado la Salida Nº " & sDocNumOIGE, EXO_Log.EXO_Log.Tipo.informacion)
@@ -188,6 +194,9 @@ Public Class Procesos
                                 sDocNumOIGE = ""
                                 oLog.escribeMensaje("AjusteStockSalida - No se ha podido generar la Salida del fichero" & archivo, EXO_Log.EXO_Log.Tipo.error)
                             End If
+                            'Copiamos al Hco
+                            My.Computer.FileSystem.MoveFile(archivo, sPath & "\HISTORIC\" & sNomFichero)
+                            oLog.escribeMensaje("AjusteStockSalida - Se ha guardado el fichero al hco " & sPath & "\HISTORIC\" & sNomFichero, EXO_Log.EXO_Log.Tipo.informacion)
                         End If
                     Else
                         oLog.escribeMensaje("AjusteStockSalida - No se ha encontrado el fichero a cargar.", EXO_Log.EXO_Log.Tipo.error)
