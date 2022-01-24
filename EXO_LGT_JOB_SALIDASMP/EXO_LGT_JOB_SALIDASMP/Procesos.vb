@@ -50,7 +50,7 @@ Public Class Procesos
         Dim oOIGE As SAPbobsCOM.Documents = Nothing
         Dim sArticulo As String = ""
         Dim sUnidades As String = ""
-        Dim sImporte As String = ""
+        Dim sImporte As String = "" : Dim sAlmacen As String = ""
         Dim sBatchNumber As String = ""
         Dim bGestionLotes As Boolean = False
         Dim sWhsCode As String = ""
@@ -120,7 +120,8 @@ Public Class Procesos
                                     Next
                                     sArticulo = scampos(1)
                                     sUnidades = scampos(2)
-                                    sImporte = scampos(3)
+                                    'sImporte = scampos(3) 'Según Sara ya no lo necesitan y se quita
+                                    sAlmacen = scampos(3)
                                     Try
                                         sBatchNumber = scampos(4)
                                     Catch ex As Exception
@@ -152,7 +153,8 @@ Public Class Procesos
                                     oOIGE.Lines.ItemCode = sArticulo
                                     oOIGE.Lines.WarehouseCode = sWhsCode
                                     oOIGE.Lines.Quantity = EXO_GLOBALES.DblTextToNumber(oCompany, sUnidades)
-                                    oOIGE.Lines.UnitPrice = EXO_GLOBALES.DblTextToNumber(oCompany, sImporte)
+                                    'oOIGE.Lines.UnitPrice = EXO_GLOBALES.DblTextToNumber(oCompany, sImporte) 'Según SAra se quita
+                                    oOIGE.Lines.WarehouseCode = sAlmacen
                                     If sCeCo.Trim <> "" Then
                                         oOIGE.Lines.CostingCode = sCeCo
                                     End If
