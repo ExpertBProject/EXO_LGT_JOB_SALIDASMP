@@ -100,8 +100,9 @@ Public Class Procesos
                                         bPrimeraLinea = False
                                         'Creo cabecera
                                         sFecha = Right(Left(archivo, Len(archivo) - 4), 8)
-                                        oOIGE.DocDate = CDate(Right(sFecha, 2) & "/" & Mid(sFecha, 5, 2) & "/" & Left(sFecha, 4))
-                                        oOIGE.TaxDate = CDate(Right(sFecha, 2) & "/" & Mid(sFecha, 5, 2) & "/" & Left(sFecha, 4))
+                                        Dim dFecha As Date = New Date(Left(sFecha, 4), Mid(sFecha, 5, 2), Right(sFecha, 2))
+                                        oOIGE.DocDate = dFecha
+                                        oOIGE.TaxDate = dFecha
                                         oOIGE.Comments = "Ajuste de stock salida recibido - " & archivo
                                         oOIGE.UserFields.Fields.Item("U_EXO_FILEINTERFACE").Value = archivo
                                     Else
@@ -113,9 +114,9 @@ Public Class Procesos
                                     Dim scampos(1) As String
                                     Dim iCampo As Integer = 0
                                     For Each currentField In currentRow
-                                        iCampo += 1
                                         ReDim Preserve scampos(iCampo)
                                         scampos(iCampo) = currentField
+                                        iCampo += 1
                                         'SboApp.MessageBox(scampos(iCampo))
                                     Next
                                     sArticulo = scampos(1)
