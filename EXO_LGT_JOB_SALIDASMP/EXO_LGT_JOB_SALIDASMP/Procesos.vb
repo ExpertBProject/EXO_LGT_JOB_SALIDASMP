@@ -24,7 +24,7 @@ Public Class Procesos
 
                 If diferencia >= CDbl(sDias) Then ' Nº de días
                     File.Delete(archivo)
-                    oLog.escribeMensaje("la diferencia de días es " & diferencia.ToString & ". Se borra el fichero " & archivo, EXO_Log.EXO_Log.Tipo.advertencia)
+                    oLog.escribeMensaje("La diferencia de días es " & diferencia.ToString & ". Se borra el fichero " & archivo, EXO_Log.EXO_Log.Tipo.advertencia)
                 End If
             Next
         Catch exCOM As System.Runtime.InteropServices.COMException
@@ -46,7 +46,7 @@ Public Class Procesos
         Dim Reader As XmlTextReader = New XmlTextReader(myStream)
         Dim sDelimitador As String = "2"
         Dim sNomFichero As String = ""
-        Dim sFecha As String = ""
+        Dim sFecha As String = "" : Dim sFechaControl As String = ""
         Dim oOIGE As SAPbobsCOM.Documents = Nothing
         Dim sArticulo As String = ""
         Dim sUnidades As String = ""
@@ -78,7 +78,6 @@ Public Class Procesos
                         End If
                         oCompany.StartTransaction()
 
-                        oOIGE = CType(oCompany.GetBusinessObject(SAPbobsCOM.BoObjectTypes.oInventoryGenExit), SAPbobsCOM.Documents)
                         Using MyReader As New Microsoft.VisualBasic.
                     FileIO.TextFieldParser(archivo, System.Text.Encoding.UTF7)
                             MyReader.TextFieldType = FileIO.FieldType.Delimited
@@ -91,24 +90,15 @@ Public Class Procesos
                             End Select
 
                             Dim currentRow As String()
-                            Dim bPrimeraLinea As Boolean = True
-
+                            Dim bPrimeraLinea As Boolean = True : Dim bPrimeraLineaDoc As Boolean = True : Dim bGraba As Boolean = False
+                            sFecha = "" : sFechaControl = ""
                             While Not MyReader.EndOfData
                                 Try
                                     If bPrimeraLinea = True Then
-                                        currentRow = MyReader.ReadFields() : currentRow = MyReader.ReadFields()
-                                        bPrimeraLinea = False
-                                        'Creo cabecera
-                                        sFecha = Right(Left(archivo, Len(archivo) - 4), 8)
-                                        Dim dFecha As Date = New Date(Left(sFecha, 4), Mid(sFecha, 5, 2), Right(sFecha, 2))
-                                        oOIGE.DocDate = dFecha
-                                        oOIGE.TaxDate = dFecha
-                                        oOIGE.Comments = "Ajuste de stock salida recibido - " & archivo
-                                        oOIGE.UserFields.Fields.Item("U_EXO_FILEINTERFACE").Value = archivo
-                                    Else
                                         currentRow = MyReader.ReadFields()
-                                        oOIGE.Lines.Add()
+                                        bPrimeraLinea = False
                                     End If
+                                    currentRow = MyReader.ReadFields()
 
                                     Dim currentField As String
                                     Dim scampos(1) As String
@@ -119,6 +109,7 @@ Public Class Procesos
                                         iCampo += 1
                                         'SboApp.MessageBox(scampos(iCampo))
                                     Next
+                                    sFecha = scampos(0)
                                     sArticulo = scampos(1)
                                     sUnidades = scampos(2)
                                     'sImporte = scampos(3) 'Según Sara ya no lo necesitan y se quita
@@ -127,8 +118,60 @@ Public Class Procesos
                                         sBatchNumber = scampos(4)
                                     Catch ex As Exception
                                         sBatchNumber = ""
-                                        oLog.escribeMensaje("AjusteStockSalida - Artículo " & sArticulo & " No tiene indicado Lote.", EXO_Log.EXO_Log.Tipo.advertencia)
+                                        'oLog.escribeMensaje("AjusteStockSalida - Artículo " & sArticulo & " No tiene indicado Lote.", EXO_Log.EXO_Log.Tipo.advertencia)
                                     End Try
+                                    If sFecha <> sFechaControl Then
+                                        If bGraba = True Then
+                                            If oOIGE.Add() <> 0 Then
+                                                oLog.escribeMensaje("AjusteStockSalida - " & oCompany.GetLastErrorCode.ToString & " / " & oCompany.GetLastErrorDescription.Replace("'", ""), EXO_Log.EXO_Log.Tipo.error)
+                                            Else
+                                                sDocEntryOIGE = oCompany.GetNewObjectKey
+                                                'If oCompany.InTransaction = True Then
+                                                '    oCompany.EndTransaction(SAPbobsCOM.BoWfTransOpt.wf_Commit)
+                                                'End If
+                                                oRs.DoQuery("SELECT ""DocNum"" FROM ""OIGE"" WHERE ""DocEntry"" =" & sDocEntryOIGE)
+                                                If oRs.RecordCount > 0 Then
+                                                    sDocNumOIGE = oRs.Fields.Item("DocNum").Value.ToString
+                                                    oLog.escribeMensaje("AjusteStockSalida - Se ha generado la Salida Nº " & sDocNumOIGE, EXO_Log.EXO_Log.Tipo.informacion)
+                                                Else
+                                                    sDocNumOIGE = ""
+                                                    oLog.escribeMensaje("AjusteStockSalida - No se ha podido generar la Salida del fichero" & archivo, EXO_Log.EXO_Log.Tipo.error)
+                                                End If
+                                            End If
+                                            bPrimeraLineaDoc = True
+                                            'oCompany.StartTransaction()
+                                        Else
+                                            bGraba = True
+                                        End If
+                                        'Creamos cabecera
+                                        oOIGE = CType(oCompany.GetBusinessObject(SAPbobsCOM.BoObjectTypes.oInventoryGenExit), SAPbobsCOM.Documents)
+                                        sFechaControl = sFecha
+                                        Dim sMes As String = Mid(sFecha, 4, 3)
+                                        Select Case sMes.ToLower
+                                            Case "ene", "jan" : sMes = "01"
+                                            Case "feb" : sMes = "02"
+                                            Case "mar" : sMes = "03"
+                                            Case "abr", "apr" : sMes = "04"
+                                            Case "may" : sMes = "05"
+                                            Case "jun" : sMes = "06"
+                                            Case "jul" : sMes = "07"
+                                            Case "ago", "aug" : sMes = "08"
+                                            Case "sep" : sMes = "09"
+                                            Case "oct" : sMes = "10"
+                                            Case "nov" : sMes = "11"
+                                            Case "dic", "dec" : sMes = "12"
+                                        End Select
+                                        Dim dFecha As Date = New Date(Left(Now.Year.ToString, 2) & Right(sFecha, 2), sMes, Left(sFecha, 2))
+                                        oOIGE.DocDate = dFecha
+                                        oOIGE.TaxDate = dFecha
+                                        oOIGE.Comments = "Ajuste de stock salida recibido - " & archivo
+                                        oOIGE.UserFields.Fields.Item("U_EXO_FILEINTERFACE").Value = archivo
+                                    End If
+                                    If bPrimeraLineaDoc = True Then
+                                        bPrimeraLineaDoc = False
+                                    Else
+                                        oOIGE.Lines.Add()
+                                    End If
                                     'Comprobaciones por artículo
                                     ComprobarDatosEntradasInventarioMachos(oCompany, sArticulo)
 
@@ -140,7 +183,7 @@ Public Class Procesos
                                         "FROM ""OITB"" t1 INNER JOIN " &
                                         """OITM"" t2 ON t1.""ItmsGrpCod"" = t2.""ItmsGrpCod"" " &
                                         "WHERE t2.""ItemCode"" = '" & sArticulo & "'"
-                                    oLog.escribeMensaje("AjusteStockSalida - SQL " & sSQL, EXO_Log.EXO_Log.Tipo.advertencia)
+                                    'oLog.escribeMensaje("AjusteStockSalida - SQL " & sSQL, EXO_Log.EXO_Log.Tipo.advertencia)
                                     oRs.DoQuery(sSQL)
 
                                     If oRs.RecordCount > 0 Then

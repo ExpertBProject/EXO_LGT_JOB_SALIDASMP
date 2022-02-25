@@ -14,12 +14,13 @@
             End If
         Next
         Try
-            sPath = My.Application.Info.DirectoryPath.ToString
+            'sPath = My.Application.Info.DirectoryPath.ToString
+            sPath = Conexiones.Datos_Confi("RUTAS", "LOG")
 
-            If Not System.IO.Directory.Exists(sPath & "\Logs") Then
-                System.IO.Directory.CreateDirectory(sPath & "\Logs")
+            If Not System.IO.Directory.Exists(sPath & "\SALIDASMP") Then
+                System.IO.Directory.CreateDirectory(sPath & "\SALIDASMP")
             End If
-            oLog = New EXO_Log.EXO_Log(sPath & "\Logs\LOG_", 10, EXO_Log.EXO_Log.Nivel.todos, 4, "", EXO_Log.EXO_Log.GestionFichero.dia)
+            oLog = New EXO_Log.EXO_Log(sPath & "\SALIDASMP\EXO_LOG_INTERSALIDAS_", 10, EXO_Log.EXO_Log.Nivel.todos, 4, "", EXO_Log.EXO_Log.GestionFichero.dia)
             oLog.escribeMensaje("", EXO_Log.EXO_Log.Tipo.informacion)
             oLog.escribeMensaje("###################################################", EXO_Log.EXO_Log.Tipo.informacion)
             oLog.escribeMensaje("###################################################", EXO_Log.EXO_Log.Tipo.informacion)
