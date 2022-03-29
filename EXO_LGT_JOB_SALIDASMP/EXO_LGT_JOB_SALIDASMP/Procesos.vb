@@ -57,6 +57,7 @@ Public Class Procesos
         Dim sAcctCodeEx As String = ""
         Dim sCeCo As String = ""
         Dim sDocEntryOIGE As String = "" : Dim sDocNumOIGE As String = ""
+        Dim sTexto As String = ""
 #End Region
         Try
 
@@ -114,8 +115,9 @@ Public Class Procesos
                                     sUnidades = scampos(2)
                                     'sImporte = scampos(3) 'Según Sara ya no lo necesitan y se quita
                                     sAlmacen = scampos(3)
+                                    sTexto = scampos(4)
                                     Try
-                                        sBatchNumber = scampos(4)
+                                        sBatchNumber = scampos(5)
                                     Catch ex As Exception
                                         sBatchNumber = ""
                                         'oLog.escribeMensaje("AjusteStockSalida - Artículo " & sArticulo & " No tiene indicado Lote.", EXO_Log.EXO_Log.Tipo.advertencia)
@@ -196,6 +198,10 @@ Public Class Procesos
 
                                     oOIGE.Lines.ItemCode = sArticulo
                                     oOIGE.Lines.WarehouseCode = sWhsCode
+                                    If sTexto.Trim <> "" Then
+                                        oOIGE.Lines.UserFields.Fields.Item("U_EXO_TEXTO").Value = sTexto
+                                    End If
+
                                     oOIGE.Lines.Quantity = EXO_GLOBALES.DblTextToNumber(oCompany, sUnidades)
                                     'oOIGE.Lines.UnitPrice = EXO_GLOBALES.DblTextToNumber(oCompany, sImporte) 'Según SAra se quita
                                     oOIGE.Lines.WarehouseCode = sAlmacen
